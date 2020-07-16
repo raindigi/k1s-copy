@@ -7,7 +7,6 @@ env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
   check-version:
-    name: check-version
     runs-on: ubuntu-latest
     steps:
       - name: download-source
@@ -15,9 +14,8 @@ jobs:
       - name: unzip-source
         run: mkdir "$ARCHIVE_NAME" && tar -xzf "$ARCHIVE_NAME".tar.gz -C "$ARCHIVE_NAME" --strip-components 1
       - name: check-version
-        run: '[[ $("$ARCHIVE_NAME"/k1s -v) = ${{ github.event.release.tag_name }} ]] || { echo "Version does not match release tag"; exit 1; }'
+        run: '[[ $("$ARCHIVE_NAME"/k1s -v) = ${{ github.event.release.tag_name }} ]]'
   upload-archive:
-    name: upload-archive
     needs: check-version
     runs-on: ubuntu-latest
     steps:
