@@ -2,19 +2,24 @@ name: release
 on:
   release:
     types: [created]
+env:
+  ARCHIVE_NAME: ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
   check-version:
     name: check-version
     runs-on: ubuntu-latest
     steps:
-      - 
+      - name: download-source
+        run: curl -sL "${{ github.event.release.tarball_url }}" >"$ARCHIVE_NAME".tar.gz
+      - name: unzip-source
+        run: mkdir "$ARCHIVE_NAME" && tar -xzf "$ARCHIVE_NAME".tar.gz -C "$ARCHIVE_NAME" --strip-components 1
+      - name: check-version
+        run: [[ $("$ARCHIVE_NAME"/k1s -v) = ${{ github.event.release.tag_name }} ]]
   upload-archive:
-    name: upload-distribution-archive
+    name: upload-archive
     needs: check-version
     runs-on: ubuntu-latest
-    env:
-      ARCHIVE_NAME: ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: download-source
         run: curl -sL "${{ github.event.release.tarball_url }}" >"$ARCHIVE_NAME".tar.gz
