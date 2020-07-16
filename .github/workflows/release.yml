@@ -15,7 +15,7 @@ jobs:
       - name: unzip-source
         run: mkdir "$ARCHIVE_NAME" && tar -xzf "$ARCHIVE_NAME".tar.gz -C "$ARCHIVE_NAME" --strip-components 1
       - name: check-version
-        run: '[[ $("$ARCHIVE_NAME"/k1s -v) = ${{ github.event.release.tag_name }} ]]'
+        run: '[[ $("$ARCHIVE_NAME"/k1s -v) = ${{ github.event.release.tag_name }} ]] || { echo "Version does not match release tag"; exit 1; }'
   upload-archive:
     name: upload-archive
     needs: check-version
