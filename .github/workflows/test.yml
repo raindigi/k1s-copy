@@ -15,5 +15,5 @@ jobs:
       - name: step-1
         run: echo "Job 2, Step 1"
       - name: print-needs-context
-        run: echo ${{ toJson(needs) }}
+        run: echo "${{ toJson(needs) }}"
 
