@@ -12,3 +12,9 @@ jobs:
     steps:
       - name: hello
         run: echo "I'm job-2"
+  job-3:
+    needs: job-2
+    runs-on: ubuntu-latest
+    steps:
+      - name: hello
+        run: echo "I'm job-2"
