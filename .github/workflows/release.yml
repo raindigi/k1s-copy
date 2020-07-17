@@ -17,8 +17,6 @@ jobs:
         run: '[[ $("$ARCHIVE_NAME"/k1s -v) = ${{ github.event.release.tag_name }} ]]'
       - name: output
         run: echo foobar
-  test-output:
-    runs-on
   upload-archive:
     needs: check-version
     runs-on: ubuntu-latest
