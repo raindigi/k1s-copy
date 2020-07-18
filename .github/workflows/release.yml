@@ -19,6 +19,7 @@ jobs:
           path: ${{ env.ARCHIVE_NAME }}
           key: ${{ env.ARCHIVE_NAME }}-${{ github.run_id }}
   check-version:
+    needs: get-source
     runs-on: ubuntu-latest
     steps:
       - name: cache-restore
