@@ -16,16 +16,16 @@ jobs:
       - name: cache
         uses: actions/cache@v2
         with:
-          path: "$ARCHIVE_NAME"
-          key: "$ARCHIVE_NAME"-${{ github.run_id }}
+          path: ${{ env.ARCHIVE_NAME }}
+          key: ${{ env.ARCHIVE_NAME }}-${{ github.run_id }}
   check-version:
     runs-on: ubuntu-latest
     steps:
       - name: cache-restore
         uses: actions/cache@v2
         with:
-          path: "$ARCHIVE_NAME"
-          key: "$ARCHIVE_NAME"-${{ github.run_id }}
+          path: ${{ env.ARCHIVE_NAME }}
+          key: ${{ env.ARCHIVE_NAME }}-${{ github.run_id }}
       - name: check-version
         run: '[[ $("$ARCHIVE_NAME"/k1s -v) = "${{ github.event.release.tag_name }}" ]]'
       - if: failure() 
