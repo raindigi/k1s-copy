@@ -17,10 +17,14 @@ jobs:
         run: '[[ $("$ARCHIVE_NAME"/k1s -v) = "${{ github.event.release.tag_name }}" ]]'
       - if: failure() 
         name: delete-release
-        run: echo foo # 'curl -X DELETE -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/${{ github.event.repository.full_name }}/releases/${{ github.event.release.id }}"'
+        run: |
+          curl -X DELETE \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.event.repository.full_name }}/releases/${{ github.event.release.id }}"
       - if: failure()
         name: delete-tag
-        run: echo foo # 'curl -X DELETE -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/${{ github.event.repository.full_name }}/git/refs/tags/${{ github.event.release.tag_name }}"'
+        run: 'curl -X DELETE -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/${{ github.event.repository.full_name }}/git/refs/tags/${{ github.event.release.tag_name }}"'
 #        if: failure() 
 #        run:
 #        uses: author/action-rollback@stable
