@@ -1,4 +1,4 @@
-name: release
+name: finalise-release
 on:
   release:
     types: [created]
@@ -6,51 +6,26 @@ env:
   ARCHIVE_NAME: ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
-  get-source:
-    runs-on: ubuntu-latest
-    steps:
-      - name: download
-        run: curl -sL "${{ github.event.release.tarball_url }}" >"$ARCHIVE_NAME".tar.gz
-      - name: unzip
-        run: mkdir "$ARCHIVE_NAME" && tar -xzf "$ARCHIVE_NAME".tar.gz -C "$ARCHIVE_NAME" --strip-components 1
-      - name: cache
-        uses: actions/cache@v2
-        with:
-          path: ${{ env.ARCHIVE_NAME }}
-          key: ${{ env.ARCHIVE_NAME }}-${{ github.run_id }}
-  check-version:
-    needs: get-source
-    runs-on: ubuntu-latest
-    steps:
-      - name: cache-restore
-        uses: actions/cache@v2
-        with:
-          path: ${{ env.ARCHIVE_NAME }}
-          key: ${{ env.ARCHIVE_NAME }}-${{ github.run_id }}
-      - name: check-version
-        run: '[[ $("$ARCHIVE_NAME"/k1s -v) = "${{ github.event.release.tag_name }}" ]]'
-      - if: failure() 
-        name: delete-release
-        run: |
-          curl -s -X DELETE \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/${{ github.event.repository.full_name }}/releases/${{ github.event.release.id }}
-      - if: failure()
-        name: delete-tag
-        run: |
-          curl -s -X DELETE \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/${{ github.event.repository.full_name }}/git/refs/tags/${{ github.event.release.tag_name }}
   upload-archive:
-    needs: check-version
     runs-on: ubuntu-latest
     steps:
       - name: download-source
         run: curl -sL "${{ github.event.release.tarball_url }}" >"$ARCHIVE_NAME".tar.gz
       - name: unzip-source
         run: mkdir "$ARCHIVE_NAME" && tar -xzf "$ARCHIVE_NAME".tar.gz -C "$ARCHIVE_NAME" --strip-components 1
+      - name: check-version
+        run: '[[ $("$ARCHIVE_NAME"/k1s -v) = "${{ github.event.release.tag_name }}" ]]'
+      - if: failure() 
+        name: rollback-release
+        run: |
+          curl -s -X DELETE \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.event.repository.full_name }}/releases/${{ github.event.release.id }} &&
+          curl -s -X DELETE \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.event.repository.full_name }}/git/refs/tags/${{ github.event.release.tag_name }}
       - name: clean-source
         run: rm -rf "$ARCHIVE_NAME"/{.github,assets}
       - name: create-archive
