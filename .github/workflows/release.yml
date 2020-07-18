@@ -6,13 +6,26 @@ env:
   ARCHIVE_NAME: ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
+  get-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: download
+        run: curl -sL "${{ github.event.release.tarball_url }}" >"$ARCHIVE_NAME".tar.gz
+      - name: unzip
+        run: mkdir "$ARCHIVE_NAME" && tar -xzf "$ARCHIVE_NAME".tar.gz -C "$ARCHIVE_NAME" --strip-components 1
+      - name: cache
+        uses: actions/cache@v2
+        with:
+          path: "$ARCHIVE_NAME"
+          key: "$ARCHIVE_NAME"-${{ github.run_id }}
   check-version:
     runs-on: ubuntu-latest
     steps:
-      - name: download-source
-        run: curl -sL "${{ github.event.release.tarball_url }}" >"$ARCHIVE_NAME".tar.gz
-      - name: unzip-source
-        run: mkdir "$ARCHIVE_NAME" && tar -xzf "$ARCHIVE_NAME".tar.gz -C "$ARCHIVE_NAME" --strip-components 1
+      - name: cache-restore
+        uses: actions/cache@v2
+        with:
+          path: "$ARCHIVE_NAME"
+          key: "$ARCHIVE_NAME"-${{ github.run_id }}
       - name: check-version
         run: '[[ $("$ARCHIVE_NAME"/k1s -v) = "${{ github.event.release.tag_name }}" ]]'
       - if: failure() 
@@ -29,12 +42,6 @@ jobs:
             -H "Authorization: Bearer $GITHUB_TOKEN" \
             -H "Accept: application/vnd.github.v3+json" \
             https://api.github.com/repos/${{ github.event.repository.full_name }}/git/refs/tags/${{ github.event.release.tag_name }}
-#        if: failure() 
-#        run:
-#        uses: author/action-rollback@stable
-#        with:
-#          id: ${{ github.event.release.id}}
-#          tag: ${{ github.event.release.tag_name }}
   upload-archive:
     needs: check-version
     runs-on: ubuntu-latest
