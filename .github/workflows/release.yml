@@ -16,7 +16,7 @@ jobs:
       - name: check-version
         run: '[[ $("$ARCHIVE_NAME"/k1s -v) = "${{ github.event.release.tag_name }}" ]]'
       - if: failure() 
-        name: rollback-release
+        name: rollback-release-if-version-mismatch
         run: |
           curl -s -X DELETE \
             -H "Authorization: Bearer $GITHUB_TOKEN" \
