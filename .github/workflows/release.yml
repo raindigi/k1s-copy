@@ -15,13 +15,18 @@ jobs:
         run: mkdir "$ARCHIVE_NAME" && tar -xzf "$ARCHIVE_NAME".tar.gz -C "$ARCHIVE_NAME" --strip-components 1
       - name: check-version
         run: '[[ $("$ARCHIVE_NAME"/k1s -v) = "${{ github.event.release.tag_name }}" ]]'
-      - name: delete-release
-        if: failure() 
-        uses: author/action-rollback@stable
-        with:
-          id: ${{ github.event.release.id}}
-          tag: ${{ github.event.release.tag_name }}
-          always_delete_tag: true
+      - if: failure() 
+        name: delete-release
+        run: curl -X DELETE -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/${{ github.event.repository.full_name}}/releases/${{ github.event.release.id}}"
+      - if: failure()
+        name: delete-tag
+        run: curl -X DELETE -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/${{ github.event.repository.full_name}}/git/refs/tags/${{ github.event.release.tag_name }}"
+#        if: failure() 
+#        run:
+#        uses: author/action-rollback@stable
+#        with:
+#          id: ${{ github.event.release.id}}
+#          tag: ${{ github.event.release.tag_name }}
   upload-archive:
     needs: check-version
     runs-on: ubuntu-latest
