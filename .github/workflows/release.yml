@@ -14,9 +14,14 @@ jobs:
       - name: unzip-source
         run: mkdir "$ARCHIVE_NAME" && tar -xzf "$ARCHIVE_NAME".tar.gz -C "$ARCHIVE_NAME" --strip-components 1
       - name: check-version
-        run: '[[ $("$ARCHIVE_NAME"/k1s -v) = ${{ github.event.release.tag_name }} ]]'
-      - name: output
-        run: echo foobar
+        run: '[[ $("$ARCHIVE_NAME"/k1s -v) = "${{ github.event.release.tag_name }}" ]]'
+      - name: delete-release
+        if: failure() 
+        uses: author/action-rollback@stable
+        with:
+          id: ${{ github.event.release.id}}
+          tag: ${{ github.event.release.tag_name }}
+          always_delete_tag: true
   upload-archive:
     needs: check-version
     runs-on: ubuntu-latest
