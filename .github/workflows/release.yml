@@ -1,4 +1,4 @@
-name: finalise-release
+name: finish-release
 on:
   release:
     types: [created]
@@ -16,7 +16,7 @@ jobs:
       - name: check-version
         run: '[[ $("$ARCHIVE_NAME"/k1s -v) = "${{ github.event.release.tag_name }}" ]]'
       - if: failure() 
-        name: rollback-release-if-version-mismatch
+        name: rollback-release
         run: |
           curl -s -X DELETE \
             -H "Authorization: Bearer $GITHUB_TOKEN" \
