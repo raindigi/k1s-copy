@@ -1,0 +1,7 @@
+name: repository-dispatch-test
+on:
+  repository_dispatch:
+    types: [bump-version]
+jobs:
+  main:
+    - run: echo "Hello world"
