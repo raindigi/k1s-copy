@@ -4,4 +4,6 @@ on:
     types: [bump-version]
 jobs:
   main:
-    - run: echo "Hello world"
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello world"
