@@ -6,4 +6,9 @@ jobs:
   main:
     runs-on: ubuntu-latest
     steps:
-      - run: echo '${{ toJson(github.event) }}'
+      - name: print-event
+        run: echo '${{ toJson(github.event) }}'
+      - name: print-url
+        run: echo "${{ github.event.client_payload.url }}"
+      - name: print-sha256
+        run: echo "${{ github.event.client_payload.sha256}}"
