@@ -1,4 +1,4 @@
-name: finish-release
+name: finalise-release
 on:
   release:
     types: [created]
@@ -6,7 +6,7 @@ env:
   ARCHIVE_NAME: ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
-  upload-archive:
+  add-archive:
     runs-on: ubuntu-latest
     steps:
       - name: download-source
@@ -33,6 +33,7 @@ jobs:
       - name: create-checksum
         run: sha256sum "$ARCHIVE_NAME".tar.gz >checksum.txt
       - name: upload-archive
+        id: upload-archive
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ github.event.release.upload_url }}
@@ -40,9 +41,34 @@ jobs:
           asset_name: ${{ env.ARCHIVE_NAME }}.tar.gz
           asset_content_type: application/gzip
       - name: upload-checksum
+        id: upload-checksum
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: checksum.txt
           asset_name: checksum.txt
           asset_content_type: text/plain
+      - name: print-archive-url
+        run: echo "${{ steps.upload-archive.outputs.browser_download_url }}"
+      - name: print-checksum-url
+        run: echo "${{ steps.upload-checksum.outputs.browser_download_url }}"
+      # TODO: get archive URL
+      #   - Get release by ID: https://docs.github.com/en/rest/reference/repos#get-a-release
+      #   - Get URL of the correct asset
+      #   (or simply construct asset URL from the information we have?)
+      # TODO: get checksum
+      #   - Look up checksum from previous job
+      # TODO: make POST request of the following form:
+      #   curl -X POST \
+      #   -H "Authorization: Bearer $GITHUB_TOKEN" \
+      #   -H "Accept: application/vnd.github.v3+json" \
+      #   https://api.github.com/repos/weibeld/homebrew-core/dispatches \
+      #   -d '
+      #     {
+      #       "event_type": "bump-formula",
+      #       "client_payload": {
+      #         "formula": "k1s",
+      #         "url": "$URL",
+      #         "sha256": "$CHECKSUM"
+      #       }
+      #     }'
